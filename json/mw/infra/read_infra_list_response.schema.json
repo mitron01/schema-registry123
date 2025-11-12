@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReadInfraListResponseDTO",
+  "type": "object",
+  "properties": {
+    "video_servers": {
+      "type": "array",
+      "items": {
+        "$ref": "./infra_video_server.schema.json"
+      }
+    },
+    "analytics_servers": {
+      "type": "array",
+      "items": {
+        "$ref": "./infra_analytics_server.schema.json"
+      }
+    },
+    "dcms_servers": {
+      "type": "array",
+      "items": {
+        "$ref": "../../infra_inspector/dcms_object.schema.json"
+      }
+    },
+    "nvr_servers": {
+      "type": "array",
+      "items": {
+        "$ref": "../../infra_inspector/nvr_object.schema.json"
+      }
+    }
+  },
+  "required": [
+    "video_servers",
+    "analytics_servers",
+    "dcms_servers",
+    "nvr_servers"
+  ]
+}

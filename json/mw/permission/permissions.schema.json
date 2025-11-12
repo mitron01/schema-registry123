@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PermissionsDTO",
+  "type": "object",
+  "properties": {
+    "gis": {
+      "$ref": "./gis_permissions.schema.json"
+    },
+    "radars": {
+      "$ref": "./radar_permissions.schema.json"
+    },
+    "triggers": {
+      "$ref": "./triggers_permissions.schema.json"
+    },
+    "admin_panel_accounts": {
+      "$ref": "./account_permissions.schema.json"
+    },
+    "admin_panel_sessions": {
+      "$ref": "./session_permissions.schema.json"
+    },
+    "admin_panel_permissions": {
+      "$ref": "./permission_permissions.schema.json"
+    },
+    "secrets_permissions": {
+      "$ref": "./secret_permissions.schema.json"
+    },
+    "video_servers": {
+      "type": "array",
+      "items": {
+        "$ref": "./vs_permissions.schema.json"
+      }
+    }
+  },
+  "required": [
+    "gis",
+    "radars",
+    "triggers",
+    "admin_panel_accounts",
+    "admin_panel_sessions",
+    "admin_panel_permissions",
+    "secrets_permissions",
+    "video_servers"
+  ]
+}

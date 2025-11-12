@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "VSChannelPermissionsDTO",
+  "type": "object",
+  "properties": {
+    "index": { "type": "integer" },
+    "read": { "type": "boolean" },
+    "edit": { "type": "boolean" },
+    "archive_read": { "type": "boolean" },
+    "ptz_control": { "type": "boolean" },
+    "audio_read": { "type": "boolean" },
+    "audio_archive_read": { "type": "boolean" }
+  },
+  "required": ["index", "read", "edit", "archive_read", "ptz_control", "audio_read", "audio_archive_read"]
+}

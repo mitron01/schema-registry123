@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AccountGroupStreamEvent",
+  "definitions": {
+    "AccountGroupStreamAddEvent": {
+      "title": "AccountGroupStreamAddEvent",
+      "type": "object",
+      "properties": {
+        "type": { "const": "add" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "account_id": {
+              "type": "string"
+            },
+            "group": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "name": { "type": "string" }
+              },
+              "required": ["id", "name"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["account_id", "group"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["type", "payload"],
+      "additionalProperties": false
+    },
+    "AccountGroupStreamRemoveEvent": {
+      "title": "AccountGroupStreamRemoveEvent",
+      "type": "object",
+      "properties": {
+        "type": { "const": "remove" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "account_id": { "type": "string" },
+            "group_id": { "type": "string" }
+          },
+          "required": ["account_id", "group_id"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["type", "payload"],
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/definitions/AccountGroupStreamAddEvent" },
+    { "$ref": "#/definitions/AccountGroupStreamRemoveEvent" }
+  ]
+}

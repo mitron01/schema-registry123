@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "VSPermissionsDTO",
+  "type": "object",
+  "properties": {
+    "inn": { "type": "string" },
+    "read": { "type": "boolean" },
+    "edit": { "type": "boolean" },
+    "archive_read": { "type": "boolean" },
+    "archive_control": { "type": "boolean" },
+    "log_read": { "type": "boolean" },
+    "log_archive_read": { "type": "boolean" },
+    "events_edit": { "type": "boolean" },
+    "channels": {
+      "type": "array",
+      "items": { "$ref": "./vs_channel_permissions.schema.json" }
+    }
+  },
+  "required": ["inn", "read", "edit", "archive_read", "archive_control", "log_read", "log_archive_read", "events_edit", "channels"]
+}

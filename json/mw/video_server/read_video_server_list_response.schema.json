@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReadVideoServerListResponseBody",
+  "type": "object",
+  "properties": {
+    "servers": {
+      "type": "array",
+      "items": {
+        "$ref": "./video_server_info.schema.json"
+      }
+    }
+  },
+  "required": [
+    "servers"
+  ]
+}

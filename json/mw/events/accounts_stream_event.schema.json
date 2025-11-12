@@ -1,0 +1,99 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AccountStreamEvent",
+  "definitions": {
+    "AccountStreamAddEvent": {
+      "title": "AccountStreamAddEvent",
+      "type": "object",
+      "properties": {
+        "type": { "const": "add" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The unique identifier of the account."
+            },
+            "login": {
+              "type": "string",
+              "description": "The login name of the account."
+            },
+            "roles_ids": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "List of role IDs associated with the account."
+            },
+            "groups_ids": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "List of group IDs associated with the account."
+            }
+          },
+          "required": ["id", "login", "roles_ids", "groups_ids"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["type", "payload"],
+      "additionalProperties": false
+    },
+    "AccountStreamUpdateEvent": {
+      "title": "AccountStreamUpdateEvent",
+      "type": "object",
+      "properties": {
+        "type": { "const": "update" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The unique identifier of the account."
+            },
+            "login": {
+              "type": "string",
+              "description": "The updated login name of the account (optional)."
+            },
+            "roles_ids": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "The updated list of role IDs (optional)."
+            },
+            "groups_ids": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "The updated list of group IDs (optional)."
+            }
+          },
+          "required": ["id"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["type", "payload"],
+      "additionalProperties": false
+    },
+    "AccountStreamRemoveEvent": {
+      "title": "AccountStreamRemoveEvent",
+      "type": "object",
+      "properties": {
+        "type": { "const": "remove" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The unique identifier of the account to be removed."
+            }
+          },
+          "required": ["id"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["type", "payload"],
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/definitions/AccountStreamAddEvent" },
+    { "$ref": "#/definitions/AccountStreamUpdateEvent" },
+    { "$ref": "#/definitions/AccountStreamRemoveEvent" }
+  ]
+}

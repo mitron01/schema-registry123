@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LoginResponseDTO",
+  "type": "object",
+  "properties": {
+    "login": {
+      "type": "string"
+    },
+    "token": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string"
+    },
+    "account_id": {
+      "type": "string"
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "$ref": "../role/read_role_response.schema.json"
+      }
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "$ref": "../group/read_group_response.schema.json"
+      }
+    },
+    "permissions": {
+      "$ref": "../permission/permissions.schema.json"
+    }
+  },
+  "required": [
+    "login",
+    "token",
+    "expires_at",
+    "account_id",
+    "roles",
+    "groups",
+    "permissions"
+  ]
+}

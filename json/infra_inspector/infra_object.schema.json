@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InfrastructureObjectDTO",
+  "type": "object",
+  "properties": {
+    "type": {
+      "$ref": "#/definitions/ObjectType"
+    },
+    "id": {
+      "type": "string"
+    },
+    "host": {
+      "type": "string"
+    },
+    "port": {
+      "type": "integer"
+    },
+    "name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "id",
+    "host",
+    "port",
+    "name"
+  ],
+  "definitions": {
+    "ObjectType": {
+      "type": "string",
+      "enum": [
+        "DominationVideoServer",
+        "DominationAnalyticsServer",
+        "DominationCentralManagementServer",
+        "DominationNVRServer"
+      ]
+    }
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SessionStreamEvent",
+  "definitions": {
+    "SessionStreamAddEvent": {
+      "title": "SessionStreamAddEvent",
+      "type": "object",
+      "properties": {
+        "type": { "const": "add" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "session_id": { "type": "string" },
+            "account_id": { "type": "string" },
+            "expired_at": { "type": "string" },
+            "created_at": { "type": "string" },
+            "authenticated_at": { "type": "string" }
+          },
+          "required": [
+            "session_id",
+            "account_id",
+            "expired_at",
+            "created_at",
+            "authenticated_at"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": ["type", "payload"],
+      "additionalProperties": false
+    },
+    "SessionStreamBlockEvent": {
+      "title": "SessionStreamBlockEvent",
+      "type": "object",
+      "properties": {
+        "type": { "const": "block" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "session_id": { "type": "string" },
+            "account_id": { "type": "string" }
+          },
+          "required": ["session_id", "account_id"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["type", "payload"],
+      "additionalProperties": false
+    },
+    "SessionStreamLogoutEvent": {
+      "title": "SessionStreamLogoutEvent",
+      "type": "object",
+      "properties": {
+        "type": { "const": "logout" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "session_id": { "type": "string" },
+            "account_id": { "type": "string" }
+          },
+          "required": ["session_id", "account_id"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["type", "payload"],
+      "additionalProperties": false
+    },
+    "SessionStreamRefreshEvent": {
+      "title": "SessionStreamRefreshEvent",
+      "type": "object",
+      "properties": {
+        "type": { "const": "refresh" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "session_id": { "type": "string" },
+            "account_id": { "type": "string" },
+            "new_expired": { "type": "string" }
+          },
+          "required": ["session_id", "account_id", "new_expired"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["type", "payload"],
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/definitions/SessionStreamAddEvent" },
+    { "$ref": "#/definitions/SessionStreamBlockEvent" },
+    { "$ref": "#/definitions/SessionStreamLogoutEvent" },
+    { "$ref": "#/definitions/SessionStreamRefreshEvent" }
+  ]
+}

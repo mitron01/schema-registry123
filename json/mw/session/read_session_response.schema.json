@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReadSessionResponseDTO",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "account_id": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "authenticated_at": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string"
+    },
+    "ip_address": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "account_id",
+    "active",
+    "created_at",
+    "authenticated_at",
+    "expires_at"
+  ],
+  "additionalProperties": false
+}

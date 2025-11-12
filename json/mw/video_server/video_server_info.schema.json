@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "VideoServerDTO",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string" },
+    "inn": { "type": "string" },
+    "title": { "type": "string" },
+    "version": { "type": "string" },
+    "host": { "type": "string" },
+    "port": { "type": "integer" },
+    "channels": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/VideoServerChannelDTO" }
+    }
+  },
+  "required": ["id", "inn", "title", "version", "host", "port", "channels"],
+  "definitions": {
+    "VideoServerChannelDTO": {
+      "type": "object",
+      "properties": {
+        "index": { "type": "integer" },
+        "title": { "type": "string" },
+        "inpins": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/VideoServerChannelPinDTO" }
+        },
+        "outpins": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/VideoServerChannelPinDTO" }
+        }
+      },
+      "required": ["index", "title", "inpins", "outpins"]
+    },
+    "VideoServerChannelPinDTO": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "title": { "type": "string" },
+        "message_on": { "type": "string" },
+        "message_off": { "type": "string" },
+        "token": { "type": "string" }
+      },
+      "required": ["id", "title", "message_on", "message_off", "token"]
+    }
+  }
+}

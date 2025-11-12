@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReadAccountResponseDTO",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "login": {
+      "type": "string"
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "$ref": "../role/read_role_response.schema.json"
+      }
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "$ref": "../group/read_group_response.schema.json"
+      }
+    }
+  },
+  "required": [
+    "id",
+    "login",
+    "roles",
+    "groups"
+  ],
+  "additionalProperties": false
+}

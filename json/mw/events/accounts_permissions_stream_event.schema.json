@@ -1,0 +1,241 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AccountsPermissionStreamEvent",
+  "definitions": {
+    "AccountsPermissionStreamAddEvent": {
+      "title": "AccountsPermissionStreamAddEvent",
+      "type": "object",
+      "properties": {
+        "type": { "const": "add" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "account_id": { "type": "string" },
+            "permission": {
+              "type": "object",
+              "properties": {
+                "object_type": {
+                  "type": "string",
+                  "enum": [
+                    "admin_panel_type",
+                    "gis_type",
+                    "radar_type",
+                    "triggers_type",
+                    "video_server_type",
+                    "video_server_channel_type"
+                  ]
+                },
+                "object_path": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "action": { "type": "string" }
+              },
+              "required": ["object_type", "object_path", "action"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["account_id", "permission"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["type", "payload"],
+      "additionalProperties": false
+    },
+    "AccountsPermissionStreamRemoveEvent": {
+      "title": "AccountsPermissionStreamRemoveEvent",
+      "type": "object",
+      "properties": {
+        "type": { "const": "remove" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "account_id": { "type": "string" },
+            "permission": {
+              "type": "object",
+              "properties": {
+                "object_type": {
+                  "type": "string",
+                  "enum": [
+                    "admin_panel_type",
+                    "gis_type",
+                    "radar_type",
+                    "triggers_type",
+                    "video_server_type",
+                    "video_server_channel_type"
+                  ]
+                },
+                "object_path": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "action": { "type": "string" }
+              },
+              "required": ["object_type", "object_path", "action"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["account_id", "permission"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["type", "payload"],
+      "additionalProperties": false
+    },
+    "AccountsPermissionStreamReplaceEvent": {
+      "title": "AccountsPermissionStreamReplaceEvent",
+      "type": "object",
+      "properties": {
+        "type": { "const": "replace" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "account_id": { "type": "string" },
+            "permissions": {
+              "type": "object",
+              "properties": {
+                "gis": {
+                  "type": "object",
+                  "properties": {
+                    "read": { "type": "boolean" },
+                    "edit": { "type": "boolean" }
+                  },
+                  "required": ["read", "edit"],
+                  "additionalProperties": false
+                },
+                "radars": {
+                  "type": "object",
+                  "properties": {
+                    "read": { "type": "boolean" },
+                    "edit": { "type": "boolean" }
+                  },
+                  "required": ["read", "edit"],
+                  "additionalProperties": false
+                },
+                "triggers": {
+                  "type": "object",
+                  "properties": {
+                    "read": { "type": "boolean" },
+                    "edit": { "type": "boolean" }
+                  },
+                  "required": ["read", "edit"],
+                  "additionalProperties": false
+                },
+                "admin_panel_accounts": {
+                  "type": "object",
+                  "properties": {
+                    "read": { "type": "boolean" },
+                    "edit": { "type": "boolean" },
+                    "create": { "type": "boolean" },
+                    "remove": { "type": "boolean" }
+                  },
+                  "required": ["read", "edit", "create", "remove"],
+                  "additionalProperties": false
+                },
+                "admin_panel_sessions": {
+                  "type": "object",
+                  "properties": {
+                    "read": { "type": "boolean" },
+                    "remove": { "type": "boolean" }
+                  },
+                  "required": ["read", "remove"],
+                  "additionalProperties": false
+                },
+                "admin_panel_permissions": {
+                  "type": "object",
+                  "properties": {
+                    "read": { "type": "boolean" },
+                    "edit": { "type": "boolean" }
+                  },
+                  "required": ["read", "edit"],
+                  "additionalProperties": false
+                },
+                "secrets_permissions": {
+                  "type": "object",
+                  "properties": {
+                    "edit": { "type": "boolean" }
+                  },
+                  "required": ["edit"],
+                  "additionalProperties": false
+                },
+                "video_servers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "inn": { "type": "string" },
+                      "read": { "type": "boolean" },
+                      "edit": { "type": "boolean" },
+                      "archive_read": { "type": "boolean" },
+                      "archive_control": { "type": "boolean" },
+                      "log_read": { "type": "boolean" },
+                      "log_archive_read": { "type": "boolean" },
+                      "events_edit": { "type": "boolean" },
+                      "channels": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "index": { "type": "integer" },
+                            "read": { "type": "boolean" },
+                            "edit": { "type": "boolean" },
+                            "archive_read": { "type": "boolean" },
+                            "ptz_control": { "type": "boolean" },
+                            "audio_read": { "type": "boolean" },
+                            "audio_archive_read": { "type": "boolean" }
+                          },
+                          "required": [
+                            "index",
+                            "read",
+                            "edit",
+                            "archive_read",
+                            "ptz_control",
+                            "audio_read",
+                            "audio_archive_read"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "inn",
+                      "read",
+                      "edit",
+                      "archive_read",
+                      "archive_control",
+                      "log_read",
+                      "log_archive_read",
+                      "events_edit",
+                      "channels"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "gis",
+                "radars",
+                "triggers",
+                "admin_panel_accounts",
+                "admin_panel_sessions",
+                "admin_panel_permissions",
+                "secrets_permissions",
+                "video_servers"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": ["account_id", "permissions"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["type", "payload"],
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/definitions/AccountsPermissionStreamAddEvent" },
+    { "$ref": "#/definitions/AccountsPermissionStreamRemoveEvent" },
+    { "$ref": "#/definitions/AccountsPermissionStreamReplaceEvent" }
+  ]
+}

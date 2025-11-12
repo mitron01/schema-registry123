@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CreateGroupRequestDTO",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 255
+    }
+  },
+  "required": ["name"],
+  "additionalProperties": false
+}

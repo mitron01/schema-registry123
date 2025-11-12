@@ -1,0 +1,10 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TriggerPermissionsDTO",
+  "type": "object",
+  "properties": {
+    "read": { "type": "boolean" },
+    "edit": { "type": "boolean" }
+  },
+  "required": ["read", "edit"]
+}

@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AccountsRolesStreamEvent",
+  "definitions": {
+    "AccountsRolesStreamAddEvent": {
+      "title": "AccountsRolesStreamAddEvent",
+      "type": "object",
+      "properties": {
+        "type": { "const": "add" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "account_id": { "type": "string" },
+            "role": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "name": { "type": "string" },
+                "parent_id": { "type": "string" }
+              },
+              "required": ["id", "name", "parent_id"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["account_id", "role"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["type", "payload"],
+      "additionalProperties": false
+    },
+    "AccountsRolesStreamRemoveEvent": {
+      "title": "AccountsRolesStreamRemoveEvent",
+      "type": "object",
+      "properties": {
+        "type": { "const": "remove" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "account_id": { "type": "string" },
+            "role_id": { "type": "string" }
+          },
+          "required": ["account_id", "role_id"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["type", "payload"],
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/definitions/AccountsRolesStreamAddEvent" },
+    { "$ref": "#/definitions/AccountsRolesStreamRemoveEvent" }
+  ]
+}
