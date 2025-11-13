@@ -8,6 +8,11 @@
     },
     "name": {
       "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
     }
   },
   "required": ["id", "name"],

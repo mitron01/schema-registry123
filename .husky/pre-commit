@@ -1,26 +1,13 @@
-Remove-Item .husky/pre-commit -Force
-
-@'
 @echo off
-REM .husky/pre-commit — Windows CMD version
-REM Runs JSON schema compatibility check via Node.js
-
+REM .husky/pre-commit
 setlocal
-
 set "SCRIPT=%~dp0..\scripts\checkSchemaCompat.mjs"
-
-echo → Running JSON schema compatibility check...
+echo Running schema check...
 node "%SCRIPT%"
-
 if %errorlevel% neq 0 (
     echo.
-    echo Commit rejected: breaking changes detected in JSON schemas.
+    echo Commit rejected.
     exit /b 1
 )
-
-echo Schema compatibility check passed.
+echo Check passed.
 exit /b 0
-'@ | Out-File -FilePath ".husky/pre-commit" -Encoding ASCII
-
-# Make executable
-git update-index --chmod=+x .husky/pre-commit

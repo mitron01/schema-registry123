@@ -1,140 +1,250 @@
 ﻿#!/usr/bin/env node
 import { spawnSync } from "node:child_process";
-import { promises as fs } from "node:fs";
-import os from "node:os";
-import path from "node:path";
 
-// === Проверка: установлен ли json-schema-diff в node_modules/.bin ===
-let jsdiffPath;
-try {
-  const binPath = path.join(process.cwd(), "node_modules", ".bin", "json-schema-diff");
-  const winBinPath = binPath + ".cmd";
-  jsdiffPath = process.platform === "win32" ? winBinPath : binPath;
+// Какие ключи считаем аннотациями и игнорируем при сравнении
+const ANNOTATION_KEYS = new Set([
+  "description",
+  "title",
+  "$id",
+  "$comment",
+  "examples"
+]);
 
-  // Проверяем, существует ли файл
-  await fs.access(jsdiffPath);
-} catch (err) {
-  console.error("Error: 'json-schema-diff' not found in node_modules/.bin");
-  console.error("Run: npm install json-schema-diff --save-dev");
-  process.exit(1);
-}
-
-function getJsonSchemaDiffBin() {
-  return jsdiffPath;
-}
-
-// === Глоб для JSON-схем (настрой под себя) ===
-const SCHEMA_GLOB = process.env.SCHEMA_GLOB || "json/**/*.schema.json";
-
-function run(cmd, args, opts = {}) {
-  const res = spawnSync(cmd, args, {
-    encoding: "utf8",
-    shell: process.platform === "win32",
-    ...opts,
-  });
-  if (res.error) throw res.error;
-  return res;
-}
-
+// Утилита для вызова git
 function git(args) {
-  const r = run("git", args);
-  return { ok: r.status === 0, stdout: r.stdout.trim(), stderr: r.stderr };
+  const res = spawnSync("git", args, { encoding: "utf8" });
+
+  if (res.error) {
+    throw res.error;
+  }
+
+  return {
+    ok: res.status === 0,
+    status: res.status,
+    stdout: (res.stdout || "").trim(),
+    stderr: res.stderr || ""
+  };
 }
 
-(async () => {
-  console.log("→ Running JSON schema compatibility check...");
+function isObject(v) {
+  return v !== null && typeof v === "object" && !Array.isArray(v);
+}
 
-  // Получаем изменённые файлы в staging
+/**
+ * Рекурсивный чек на ломающие изменения между двумя JSON Schema.
+ * oldSchema — версия из HEAD
+ * newSchema — версия из индекса (staging)
+ *
+ * Возвращает массив строк-причин. Если он пустой — считаем совместимым.
+ */
+function collectBreakingChanges(oldSchema, newSchema, path = "") {
+  const reasons = [];
+
+  const here = path || "<root>";
+
+  // 1. Тип изменился — точно ломающее изменение
+  if (oldSchema && newSchema && oldSchema.type && newSchema.type) {
+    if (oldSchema.type !== newSchema.type) {
+      reasons.push(
+          `${here}: type changed from "${oldSchema.type}" to "${newSchema.type}"`
+      );
+    }
+  }
+
+  // 2. additionalProperties стало менее разрешительным (любое изменение считаем ломаюшим)
+  if (
+      Object.prototype.hasOwnProperty.call(oldSchema || {}, "additionalProperties") ||
+      Object.prototype.hasOwnProperty.call(newSchema || {}, "additionalProperties")
+  ) {
+    const oldAP = (oldSchema || {}).additionalProperties;
+    const newAP = (newSchema || {}).additionalProperties;
+
+    // Любое изменение additionalProperties считаем ломающим
+    if (JSON.stringify(oldAP) !== JSON.stringify(newAP)) {
+      reasons.push(
+          `${here}: additionalProperties changed from ${JSON.stringify(
+              oldAP
+          )} to ${JSON.stringify(newAP)}`
+      );
+    }
+  }
+
+  // 3. required: если в новой схеме появились новые обязательные поля — ломаем
+  const oldReq = Array.isArray(oldSchema && oldSchema.required)
+      ? oldSchema.required
+      : [];
+  const newReq = Array.isArray(newSchema && newSchema.required)
+      ? newSchema.required
+      : [];
+
+  for (const prop of newReq) {
+    if (!oldReq.includes(prop)) {
+      reasons.push(`${here}: property "${prop}" became required`);
+    }
+  }
+
+  // 4. properties: удаление или ужесточение полей
+  const oldProps = isObject(oldSchema) && isObject(oldSchema.properties)
+      ? oldSchema.properties
+      : {};
+  const newProps = isObject(newSchema) && isObject(newSchema.properties)
+      ? newSchema.properties
+      : {};
+
+  // 4.1. поля, которые были и пропали — ломаем
+  for (const key of Object.keys(oldProps)) {
+    if (!(key in newProps)) {
+      reasons.push(`${here}: property "${key}" was removed`);
+      continue;
+    }
+
+    // Рекурсивно сравниваем схему поля
+    const nested = collectBreakingChanges(
+        oldProps[key],
+        newProps[key],
+        path ? `${path}.properties.${key}` : `properties.${key}`
+    );
+    reasons.push(...nested);
+  }
+
+  // Добавленные новые свойства (которые не required) считаем безопасными —
+  // поэтому ничего не делаем для ключей, которых не было в старой схеме.
+
+  // 5. Остальные ключи (кроме аннотаций / служебных)
+  if (isObject(oldSchema) && isObject(newSchema)) {
+    const oldKeys = Object.keys(oldSchema);
+    for (const key of oldKeys) {
+      if (key === "type" || key === "properties" || key === "required" || key === "additionalProperties") {
+        continue;
+      }
+      if (ANNOTATION_KEYS.has(key)) {
+        // description/title и т.п. — игнорируем
+        continue;
+      }
+
+      if (!Object.prototype.hasOwnProperty.call(newSchema, key)) {
+        // Ключ пропал — считаем ломаюшим
+        reasons.push(`${here}: keyword "${key}" was removed`);
+        continue;
+      }
+
+      const oldVal = oldSchema[key];
+      const newVal = newSchema[key];
+
+      const childPath = path ? `${path}.${key}` : key;
+
+      if (isObject(oldVal) && isObject(newVal)) {
+        reasons.push(...collectBreakingChanges(oldVal, newVal, childPath));
+      } else if (Array.isArray(oldVal) && Array.isArray(newVal)) {
+        // Для простоты считаем, что любое изменение массива (кроме аннотаций выше) — ломающее
+        if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+          reasons.push(
+              `${childPath}: array value changed from ${JSON.stringify(
+                  oldVal
+              )} to ${JSON.stringify(newVal)}`
+          );
+        }
+      } else {
+        // Примитив/разные типы — любое изменение ломающее
+        if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+          reasons.push(
+              `${childPath}: value changed from ${JSON.stringify(
+                  oldVal
+              )} to ${JSON.stringify(newVal)}`
+          );
+        }
+      }
+    }
+  }
+
+  return reasons;
+}
+
+async function main() {
+  console.log("Running JSON schema compatibility check...");
+
+  const SCHEMA_GLOB = process.env.SCHEMA_GLOB || "json/**/*.json";
+
+  // Находим изменённые JSON-схемы в индексе
   const diff = git([
     "diff",
     "--cached",
     "--name-only",
     "--diff-filter=ACMR",
     "--",
-    SCHEMA_GLOB,
+    SCHEMA_GLOB
   ]);
 
   if (!diff.ok || !diff.stdout) {
     console.log("No modified JSON schemas in staging.");
-    process.exit(0);
+    return;
   }
 
-  const files = diff.stdout.split("\n").filter(Boolean);
-  if (files.length === 0) process.exit(0);
+  const files = diff.stdout.split(/\r?\n/).filter(Boolean);
+  if (files.length === 0) {
+    console.log("No modified JSON schemas in staging.");
+    return;
+  }
 
-  const jsdiff = getJsonSchemaDiffBin();
   let hasBreaking = false;
 
   for (const file of files) {
-    const oldTmp = path.join(os.tmpdir(), `schema-old-${Date.now()}-${Math.random().toString(36).slice(2)}.json`);
-    const newTmp = path.join(os.tmpdir(), `schema-new-${Date.now()}-${Math.random().toString(36).slice(2)}.json`);
-
-    let oldContent = "{}";
-    let newContent = "";
-
-    // Проверяем: был ли файл в HEAD?
-    const headExists = git(["cat-file", "-e", `HEAD:${file}`]).ok;
-
-    if (headExists) {
-      const oldRes = git(["show", `HEAD:${file}`]);
-      oldContent = oldRes.ok ? oldRes.stdout : "{}";
-    } else {
-      console.log(`New file: ${file} — skipping compatibility check`);
-    }
-
-    // Получаем текущую версию из staging
-    const newRes = git(["show", `:${file}`]);
-    if (!newRes.ok) {
-      console.warn(`Failed to get staged version: ${file}`);
+    // Если файла не было в HEAD — новый файл, пропускаем проверки совместимости
+    const headExists = git(["cat-file", "-e", `HEAD:${file}`]);
+    if (!headExists.ok) {
+      console.log(
+          `New file: ${file} — skipping compatibility check (no previous version).`
+      );
       continue;
     }
-    newContent = newRes.stdout;
 
-    // Записываем во временные файлы
-    await fs.writeFile(oldTmp, oldContent, "utf8");
-    await fs.writeFile(newTmp, newContent, "utf8");
+    const oldRes = git(["show", `HEAD:${file}`]);
+    const newRes = git(["show", `:${file}`]);
 
-    console.log(`→ Checking ${file}...`);
+    if (!oldRes.ok || !newRes.ok) {
+      console.error(`Failed to read file contents for ${file}`);
+      if (oldRes.stderr) console.error(oldRes.stderr);
+      if (newRes.stderr) console.error(newRes.stderr);
+      hasBreaking = true;
+      continue;
+    }
 
-    // Запускаем json-schema-diff
-    const result = run(jsdiff, [oldTmp, newTmp], { stdio: "pipe" });
+    let oldSchema;
+    let newSchema;
 
-    // Удаляем временные файлы
-    await Promise.all([
-      fs.unlink(oldTmp).catch(() => {}),
-      fs.unlink(newTmp).catch(() => {}),
-    ]);
+    try {
+      oldSchema = JSON.parse(oldRes.stdout);
+      newSchema = JSON.parse(newRes.stdout);
+    } catch (err) {
+      console.error(`Failed to parse JSON for ${file}: ${err.message}`);
+      hasBreaking = true;
+      continue;
+    }
 
-    // Анализируем результат
-    if (result.status !== 0) {
-      const output = result.stdout + result.stderr;
-      const breaking = output
-          .split("\n")
-          .filter(line => line.includes("- ") || line.includes("changed") || line.includes("removed"))
-          .map(line => line.trim());
+    console.log(`Checking ${file}...`);
 
-      if (breaking.length > 0) {
-        console.error(`\nBreaking changes in ${file}:`);
-        breaking.forEach(msg => console.error(`  ${msg}`));
-        hasBreaking = true;
-      } else {
-        console.error(`\nIncompatible change detected in ${file}`);
-        hasBreaking = true;
+    const reasons = collectBreakingChanges(oldSchema, newSchema);
+
+    if (reasons.length > 0) {
+      console.error(`\nBreaking changes in ${file}:`);
+      for (const r of reasons) {
+        console.error(`  - ${r}`);
       }
+      hasBreaking = true;
     } else {
       console.log(`Compatible: ${file}`);
     }
   }
 
-  // Финальный вердикт
   if (hasBreaking) {
-    console.error("\nCommit rejected: breaking changes detected in JSON schemas.");
+    console.error("\nCommit rejected: breaking changes detected.");
     process.exit(1);
   } else {
-    console.log("JSON schema compatibility check passed.");
-    process.exit(0);
+    console.log("Check passed.");
   }
-})().catch((err) => {
-  console.error("Unexpected error:", err.message || err);
+}
+
+main().catch((err) => {
+  console.error("Fatal error:", err.message);
   process.exit(1);
 });

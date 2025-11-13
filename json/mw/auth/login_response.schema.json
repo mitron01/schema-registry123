@@ -10,7 +10,7 @@
       "type": "string"
     },
     "expires_at": {
-      "type": "integer"
+      "type": "string"
     },
     "account_id": {
       "type": "string"

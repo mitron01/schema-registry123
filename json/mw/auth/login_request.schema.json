@@ -1,6 +1,16 @@
-﻿{
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LoginRequestDTO",
   "type": "object",
   "properties": {
-    "password": { "type": "string" }
-  }
+    "login": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 255
+    },
+    "password": {
+      "type": "string"
+    }
+  },
+  "required": ["login", "password"]
 }

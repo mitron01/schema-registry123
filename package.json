@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "json-schema-diff": "^0.18.1"
+  }
+}

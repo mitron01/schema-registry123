@@ -7,7 +7,7 @@
     {
       "type": "object",
       "properties": {
-        "type": { "type": "integer", "enum": ["DominationAnalyticsServer"] },
+        "type": { "type": "string", "enum": ["DominationAnalyticsServer"] },
         "version": { "type": "string" },
         "api_version": { "type": "string" }
       },
