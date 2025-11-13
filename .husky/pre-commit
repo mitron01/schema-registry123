@@ -1,4 +1,17 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+@echo off
+REM .husky/pre-commit — Windows (cmd.exe) version
 
-node scripts/checkSchemaCompat.mjs
+setlocal
+
+REM Путь к скрипту
+set "SCRIPT=%~dp0..\scripts\checkSchemaCompat.mjs"
+
+REM Запускаем через node
+node "%SCRIPT%"
+if %errorlevel% neq 0 (
+    echo.
+    echo Коммит отклонён: найдены ломающие изменения в JSON-схемах.
+    exit /b 1
+)
+
+exit /b 0
