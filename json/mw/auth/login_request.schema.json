@@ -9,7 +9,7 @@
       "maxLength": 255
     },
     "password": {
-      "type": "integer"
+      "type": "string"
     }
   },
   "required": ["login", "password"]
