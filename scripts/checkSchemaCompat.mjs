@@ -4,7 +4,16 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const SCHEMA_GLOB = process.env.SCHEMA_GLOB || "schemas/**/*.json"; // поменяйте под ваш путь
+// Защита от отсутствия json-schema-diff
+try {
+  require.resolve('json-schema-diff');
+} catch (e) {
+  console.error('Ошибка: json-schema-diff не установлен.');
+  console.error('Запустите: npm install json-schema-diff --save-dev');
+  process.exit(1);
+}
+
+const SCHEMA_GLOB = process.env.SCHEMA_GLOB || "json/**/*.json"; // поменяйте под ваш путь
 
 function run(cmd, args, opts = {}) {
   const res = spawnSync(cmd, args, { encoding: "utf8", shell: process.platform === "win32", ...opts });
