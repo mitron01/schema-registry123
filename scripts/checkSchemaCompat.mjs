@@ -4,16 +4,26 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-// Проверка: установлен ли json-schema-diff
+// === Проверка: установлен ли json-schema-diff в node_modules/.bin ===
+let jsdiffPath;
 try {
-  require.resolve("json-schema-diff");
-} catch {
-  console.error("Ошибка: пакет 'json-schema-diff' не установлен.");
-  console.error("Установите: npm install json-schema-diff --save-dev");
+  const binPath = path.join(process.cwd(), "node_modules", ".bin", "json-schema-diff");
+  const winBinPath = binPath + ".cmd";
+  jsdiffPath = process.platform === "win32" ? winBinPath : binPath;
+
+  // Проверяем, существует ли файл
+  await fs.access(jsdiffPath);
+} catch (err) {
+  console.error("Error: 'json-schema-diff' not found in node_modules/.bin");
+  console.error("Run: npm install json-schema-diff --save-dev");
   process.exit(1);
 }
 
-// Глоб для JSON-схем (настрой под себя)
+function getJsonSchemaDiffBin() {
+  return jsdiffPath;
+}
+
+// === Глоб для JSON-схем (настрой под себя) ===
 const SCHEMA_GLOB = process.env.SCHEMA_GLOB || "json/**/*.schema.json";
 
 function run(cmd, args, opts = {}) {
@@ -31,12 +41,9 @@ function git(args) {
   return { ok: r.status === 0, stdout: r.stdout.trim(), stderr: r.stderr };
 }
 
-function getJsonSchemaDiffBin() {
-  const base = path.join(process.cwd(), "node_modules", ".bin", "json-schema-diff");
-  return process.platform === "win32" ? `${base}.cmd` : base;
-}
-
 (async () => {
+  console.log("→ Running JSON schema compatibility check...");
+
   // Получаем изменённые файлы в staging
   const diff = git([
     "diff",
@@ -48,7 +55,7 @@ function getJsonSchemaDiffBin() {
   ]);
 
   if (!diff.ok || !diff.stdout) {
-    console.log("Нет изменённых JSON-схем в staging.");
+    console.log("No modified JSON schemas in staging.");
     process.exit(0);
   }
 
@@ -72,13 +79,13 @@ function getJsonSchemaDiffBin() {
       const oldRes = git(["show", `HEAD:${file}`]);
       oldContent = oldRes.ok ? oldRes.stdout : "{}";
     } else {
-      console.log(`Новый файл: ${file} — пропускаю проверку совместимости`);
+      console.log(`New file: ${file} — skipping compatibility check`);
     }
 
-    // Получаем текущую версию из index (staging)
+    // Получаем текущую версию из staging
     const newRes = git(["show", `:${file}`]);
     if (!newRes.ok) {
-      console.warn(`Не удалось получить staged версию: ${file}`);
+      console.warn(`Failed to get staged version: ${file}`);
       continue;
     }
     newContent = newRes.stdout;
@@ -87,7 +94,7 @@ function getJsonSchemaDiffBin() {
     await fs.writeFile(oldTmp, oldContent, "utf8");
     await fs.writeFile(newTmp, newContent, "utf8");
 
-    console.log(`→ Проверяю ${file}…`);
+    console.log(`→ Checking ${file}...`);
 
     // Запускаем json-schema-diff
     const result = run(jsdiff, [oldTmp, newTmp], { stdio: "pipe" });
@@ -98,36 +105,36 @@ function getJsonSchemaDiffBin() {
       fs.unlink(newTmp).catch(() => {}),
     ]);
 
-    // Анализируем вывод
+    // Анализируем результат
     if (result.status !== 0) {
       const output = result.stdout + result.stderr;
       const breaking = output
           .split("\n")
-          .filter((line) => line.includes("- ") || line.includes("changed") || line.includes("removed"))
-          .map((line) => line.trim());
+          .filter(line => line.includes("- ") || line.includes("changed") || line.includes("removed"))
+          .map(line => line.trim());
 
       if (breaking.length > 0) {
-        console.error(`\nЛомающие изменения в ${file}:`);
-        breaking.forEach((msg) => console.error(`  ${msg}`));
+        console.error(`\nBreaking changes in ${file}:`);
+        breaking.forEach(msg => console.error(`  ${msg}`));
         hasBreaking = true;
       } else {
-        console.error(`\nОбнаружено несовместимое изменение в ${file}`);
+        console.error(`\nIncompatible change detected in ${file}`);
         hasBreaking = true;
       }
     } else {
-      console.log(`Совместимо: ${file}`);
+      console.log(`Compatible: ${file}`);
     }
   }
 
   // Финальный вердикт
   if (hasBreaking) {
-    console.error("\nКоммит отклонён: найдены ломающие изменения в JSON-схемах.");
+    console.error("\nCommit rejected: breaking changes detected in JSON schemas.");
     process.exit(1);
   } else {
-    console.log("Проверка совместимости JSON-схем пройдена.");
+    console.log("JSON schema compatibility check passed.");
     process.exit(0);
   }
 })().catch((err) => {
-  console.error("Неожиданная ошибка:", err.message || err);
+  console.error("Unexpected error:", err.message || err);
   process.exit(1);
 });
